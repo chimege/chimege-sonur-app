@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "espeak-ng-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/chimege/espeak-ng-spm.git",
+      "state" : {
+        "revision" : "70a68a4d5d50a244643f7e578a37bd3fa7d9aa6f",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "sonur-swift-text-normalizer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/chimege/sonur-swift-text-normalizer.git",
+      "state" : {
+        "revision" : "6adff24537456f364749e30db5facd6899cdc05a",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}
