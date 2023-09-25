@@ -139,17 +139,17 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
             is_empty = false
             return noErr
         }
-        let ssml: String = TextUtils.xml_remover(speechRequest?.ssmlRepresentation ?? "")
-        if (speechRequest != nil || ssml != "") || frameCount > (output.count - outputOffset) {
-            usleep(1000 * 20)
-        }
+        //let ssml: String = TextUtils.xml_remover(speechRequest?.ssmlRepresentation ?? "")
+        //if (speechRequest != nil || ssml != "") || frameCount > (output.count - outputOffset) {
+        //    usleep(1000 * 20)
+        //}
 
         while true {
             outputDispatchGroup.enter()
-            let shouldWait = outputFinished && outputOffset >= outputTotal
+            let shouldWait = !outputFinished && outputOffset >= outputTotal
             outputDispatchGroup.leave()
             if shouldWait {
-                sleep(5)
+                usleep(1000 * 20)
             } else {
                 break
             }
