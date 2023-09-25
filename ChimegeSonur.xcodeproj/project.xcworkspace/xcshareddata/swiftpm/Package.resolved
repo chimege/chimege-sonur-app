@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/chimege/espeak-ng-spm.git",
       "state" : {
-        "revision" : "70a68a4d5d50a244643f7e578a37bd3fa7d9aa6f",
-        "version" : "1.0.0"
+        "revision" : "e5ad0b8607a0bf2e2638f447e5b7b96a393f6fe5",
+        "version" : "1.0.2"
       }
     },
     {
