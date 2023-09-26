@@ -129,20 +129,18 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
         renderEvents _: UnsafePointer<AURenderEvent>?,
         renderPull _: AURenderPullInputBlock?
     ) -> AUAudioUnitStatus {
-        //        if !is_empty {
-        //        }
         let unsafeBuffer = UnsafeMutableAudioBufferListPointer(outputAudioBufferList)[0]
         let frames = unsafeBuffer.mData!.assumingMemoryBound(to: Float32.self)
         frames.update(repeating: 0, count: Int(frameCount))
-        if is_empty {
+        var cancelRendering = false
+        outputDispatchGroup.enter()
+        cancelRendering = is_empty || self.speechRequest == nil
+        outputDispatchGroup.leave()
+        if cancelRendering {
             actionFlags.pointee = .offlineUnitRenderAction_Complete
             is_empty = false
             return noErr
         }
-        //let ssml: String = TextUtils.xml_remover(speechRequest?.ssmlRepresentation ?? "")
-        //if (speechRequest != nil || ssml != "") || frameCount > (output.count - outputOffset) {
-        //    usleep(1000 * 20)
-        //}
 
         while true {
             outputDispatchGroup.enter()
@@ -176,12 +174,11 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
         outputOffset += count
         if outputFinished && outputOffset >= outputTotal {
             self.speechRequest = nil
-            NSLog("chimegesynth render complete")
+            //NSLog("chimegesynth render complete")
             actionFlags.pointee = .offlineUnitRenderAction_Complete
             output.removeAll()
             outputOffset = 0
             outputTotal = 0
-            outputFinished = false
         }
 
         outputDispatchGroup.leave()
@@ -192,7 +189,6 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
     override public var internalRenderBlock: AUInternalRenderBlock { self.performRender }
 
     override public func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
-        self.speechRequest = speechRequest
         is_empty = false
         let ssmlText = speechRequest.ssmlRepresentation
         NSLog("chimegesynth ssml: \(ssmlText)")
@@ -210,10 +206,12 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
         ChimegeSynthesizer.single.ensure_voice_is_loaded(voiceName: voiceName)
 
         outputDispatchGroup.enter()
+        self.speechRequest = speechRequest
         output.removeAll()
         outputOffset = 0
         outputTotal = 0
         outputFinished = false
+        
         outputThread = Thread(block: {
             ChimegeSynthesizer.single.speak(unit: self, speechRequest: speechRequest)
             self.outputDispatchGroup.enter()
@@ -227,21 +225,27 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
 
     override public func cancelSpeechRequest() {
         is_empty = false
-        self.speechRequest = nil
 
-        NSLog("chimegesynth cancelSpeechRequest")
+        //NSLog("chimegesynth cancelSpeechRequest")
         if outputThread != nil {
             outputThread!.cancel()
-            // TODO: join
             outputThread = nil
+            // TODO: join
+            while true {
+                // TODO: better mutex???
+                if outputFinished {
+                    break
+                }
+                usleep(1000 * 1)
+            }
         }
 
         outputDispatchGroup.enter()
 
+        self.speechRequest = nil
         output.removeAll()
         outputOffset = 0
         outputTotal = 0
-        outputFinished = false
 
         outputDispatchGroup.leave()
     }
